@@ -6,10 +6,12 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { FileText, Image as ImageIcon, Lock } from 'lucide-react';
+import { Textarea } from '../components/ui/textarea';
 
 const Index = () => {
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [secretKey, setSecretKey] = useState('');
+  const [secretMessage, setSecretMessage] = useState('');
 
   const handleFileSelected = (file: File) => {
     const reader = new FileReader();
@@ -59,6 +61,19 @@ const Index = () => {
 
             <div className="space-y-4 neo-glass p-6 rounded-lg">
               <div className="space-y-2">
+                <label htmlFor="secretMessage" className="block text-sm font-medium">
+                  Secret Message
+                </label>
+                <Textarea
+                  id="secretMessage"
+                  value={secretMessage}
+                  onChange={(e) => setSecretMessage(e.target.value)}
+                  placeholder="Enter your secret message"
+                  className="neo-glass min-h-[100px]"
+                />
+              </div>
+
+              <div className="space-y-2">
                 <label htmlFor="secretKey" className="block text-sm font-medium">
                   Encryption Key
                 </label>
@@ -75,7 +90,7 @@ const Index = () => {
               <div className="pt-4">
                 <Button
                   className="w-full neo-glass hover:bg-white/10"
-                  disabled={!coverImage || !secretKey}
+                  disabled={!coverImage || !secretKey || !secretMessage}
                 >
                   Hide Data
                 </Button>
