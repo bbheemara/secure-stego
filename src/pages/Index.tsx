@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import DragDropZone from '../components/DragDropZone';
 import ImagePreview from '../components/ImagePreview';
@@ -147,8 +146,8 @@ const Index = () => {
     <div className="min-h-screen w-full max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="space-y-8 animate-fadeIn">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-cyan-500">
-            Secure Steganography
+          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
+            Krishna's Secure Data Hiding
           </h1>
           <p className="text-lg text-white/60 max-w-2xl mx-auto">
             Hide your sensitive data securely within images using advanced encryption and steganography techniques.
