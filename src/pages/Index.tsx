@@ -10,6 +10,7 @@ import { Textarea } from '../components/ui/textarea';
 import { encryptMessage, decryptMessage } from '../utils/encryption';
 import { hideData, extractData } from '../utils/steganography';
 import { useToast } from '../components/ui/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 
 const Index = () => {
   const [coverImage, setCoverImage] = useState<string | null>(null);
@@ -17,6 +18,8 @@ const Index = () => {
   const [secretMessage, setSecretMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [mode, setMode] = useState<'hide' | 'extract'>('hide');
+  const [dataType, setDataType] = useState<'text' | 'image' | 'document'>('text');
+  const [secretFile, setSecretFile] = useState<File | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
 
@@ -26,6 +29,30 @@ const Index = () => {
       setCoverImage(reader.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleSecretFileSelected = (file: File) => {
+    setSecretFile(file);
+  };
+
+  const validateSecretFile = (file: File): boolean => {
+    if (dataType === 'image' && !file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return false;
+    }
+    if (dataType === 'document' && !['application/pdf', 'text/plain'].includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select a PDF or TXT file",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
   };
 
   const processImage = async () => {
@@ -47,12 +74,25 @@ const Index = () => {
       ctx.drawImage(img, 0, 0);
 
       if (mode === 'hide') {
-        if (!secretMessage) return;
+        let dataToHide = '';
         
-        // Encrypt the message
-        const encrypted = await encryptMessage(secretMessage, secretKey);
+        if (dataType === 'text') {
+          if (!secretMessage) return;
+          dataToHide = secretMessage;
+        } else if (secretFile) {
+          if (!validateSecretFile(secretFile)) return;
+          
+          const reader = new FileReader();
+          dataToHide = await new Promise((resolve) => {
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(secretFile);
+          });
+        }
         
-        // Hide the encrypted message in the image
+        // Encrypt the data
+        const encrypted = await encryptMessage(dataToHide, secretKey);
+        
+        // Hide the encrypted data in the image
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const modifiedImageData = hideData(imageData, encrypted);
         ctx.putImageData(modifiedImageData, 0, 0);
@@ -65,19 +105,31 @@ const Index = () => {
 
         toast({
           title: "Success!",
-          description: "Your message has been hidden in the image.",
+          description: "Your data has been hidden in the image.",
         });
       } else {
-        // Extract and decrypt the message
+        // Extract and decrypt the data
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const extractedData = extractData(imageData);
         const decrypted = await decryptMessage(extractedData, secretKey);
-        setSecretMessage(decrypted);
-
-        toast({
-          title: "Success!",
-          description: "Message extracted successfully!",
-        });
+        
+        if (decrypted.startsWith('data:')) {
+          // Handle extracted file
+          const link = document.createElement('a');
+          link.href = decrypted;
+          link.download = 'extracted-file' + (decrypted.includes('image') ? '.png' : '.txt');
+          link.click();
+          toast({
+            title: "Success!",
+            description: "File extracted successfully!",
+          });
+        } else {
+          setSecretMessage(decrypted);
+          toast({
+            title: "Success!",
+            description: "Message extracted successfully!",
+          });
+        }
       }
     } catch (error) {
       console.error(error);
@@ -129,19 +181,63 @@ const Index = () => {
           )}
 
           <div className="space-y-4 neo-glass p-6 rounded-lg">
-            <div className="space-y-2">
-              <label htmlFor="secretMessage" className="block text-sm font-medium">
-                {mode === 'hide' ? 'Secret Message' : 'Extracted Message'}
-              </label>
-              <Textarea
-                id="secretMessage"
-                value={secretMessage}
-                onChange={(e) => setSecretMessage(e.target.value)}
-                placeholder={mode === 'hide' ? "Enter your secret message" : "Extracted message will appear here"}
-                className="neo-glass min-h-[100px]"
-                readOnly={mode === 'extract'}
-              />
-            </div>
+            {mode === 'hide' && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">Data Type</label>
+                <Select value={dataType} onValueChange={(value: 'text' | 'image' | 'document') => setDataType(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select data type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text">Text Message</SelectItem>
+                    <SelectItem value="image">Image File</SelectItem>
+                    <SelectItem value="document">Document (PDF/TXT)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {mode === 'hide' && dataType === 'text' && (
+              <div className="space-y-2">
+                <label htmlFor="secretMessage" className="block text-sm font-medium">
+                  Secret Message
+                </label>
+                <Textarea
+                  id="secretMessage"
+                  value={secretMessage}
+                  onChange={(e) => setSecretMessage(e.target.value)}
+                  placeholder="Enter your secret message"
+                  className="neo-glass min-h-[100px]"
+                />
+              </div>
+            )}
+
+            {mode === 'hide' && (dataType === 'image' || dataType === 'document') && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  Secret File
+                </label>
+                <DragDropZone
+                  onFileSelected={handleSecretFileSelected}
+                  acceptedFileTypes={dataType === 'image' ? ['image/*'] : ['.pdf', '.txt']}
+                />
+              </div>
+            )}
+
+            {mode === 'extract' && (
+              <div className="space-y-2">
+                <label htmlFor="secretMessage" className="block text-sm font-medium">
+                  Extracted Message
+                </label>
+                <Textarea
+                  id="secretMessage"
+                  value={secretMessage}
+                  readOnly
+                  placeholder="Extracted message will appear here"
+                  className="neo-glass min-h-[100px]"
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <label htmlFor="secretKey" className="block text-sm font-medium">
@@ -160,7 +256,7 @@ const Index = () => {
             <div className="pt-4">
               <Button
                 className="w-full neo-glass hover:bg-white/10"
-                disabled={!coverImage || !secretKey || (mode === 'hide' && !secretMessage) || isProcessing}
+                disabled={!coverImage || !secretKey || (mode === 'hide' && !secretMessage && !secretFile) || isProcessing}
                 onClick={processImage}
               >
                 {isProcessing ? 'Processing...' : mode === 'hide' ? 'Hide Data' : 'Extract Data'}
