@@ -26,6 +26,7 @@ const Index = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       setCoverImage(reader.result as string);
+      setSecretMessage('');
     };
     reader.readAsDataURL(file);
   };
@@ -88,15 +89,12 @@ const Index = () => {
           });
         }
         
-        // Encrypt the data
         const encrypted = await encryptMessage(dataToHide, secretKey);
         
-        // Hide the encrypted data in the image
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const modifiedImageData = hideData(imageData, encrypted);
         ctx.putImageData(modifiedImageData, 0, 0);
 
-        // Create download link
         const link = document.createElement('a');
         link.download = 'stego-image.png';
         link.href = canvas.toDataURL();
@@ -107,26 +105,45 @@ const Index = () => {
           description: "Your data has been hidden in the image.",
         });
       } else {
-        // Extract and decrypt the data
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const extractedData = extractData(imageData);
-        const decrypted = await decryptMessage(extractedData, secretKey);
+        let extractedData;
         
-        if (decrypted.startsWith('data:')) {
-          // Handle extracted file
-          const link = document.createElement('a');
-          link.href = decrypted;
-          link.download = 'extracted-file' + (decrypted.includes('image') ? '.png' : '.txt');
-          link.click();
+        try {
+          extractedData = extractData(imageData);
+        } catch (error) {
           toast({
-            title: "Success!",
-            description: "File extracted successfully!",
+            title: "Invalid Image",
+            description: "Please upload a valid stego image containing hidden data.",
+            variant: "destructive",
           });
-        } else {
-          setSecretMessage(decrypted);
+          return;
+        }
+
+        try {
+          const decrypted = await decryptMessage(extractedData, secretKey);
+          
+          if (decrypted.startsWith('data:')) {
+            const link = document.createElement('a');
+            link.href = decrypted;
+            link.download = 'extracted-file' + (decrypted.includes('image') ? '.png' : '.txt');
+            link.click();
+            toast({
+              title: "Success!",
+              description: "File extracted successfully!",
+            });
+          } else {
+            setSecretMessage(decrypted);
+            toast({
+              title: "Success!",
+              description: "Message extracted successfully!",
+            });
+          }
+        } catch (error) {
+          setSecretMessage('');
           toast({
-            title: "Success!",
-            description: "Message extracted successfully!",
+            title: "Incorrect Password",
+            description: "Please check your encryption key and try again.",
+            variant: "destructive",
           });
         }
       }
