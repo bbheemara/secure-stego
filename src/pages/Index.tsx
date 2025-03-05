@@ -187,12 +187,14 @@ const Index = () => {
           <Button
             variant={mode === 'hide' ? 'default' : 'outline'}
             onClick={() => setMode('hide')}
+            className="text-white"
           >
             Hide Data
           </Button>
           <Button
             variant={mode === 'extract' ? 'default' : 'outline'}
             onClick={() => setMode('extract')}
+            className="text-white"
           >
             Extract Data
           </Button>
@@ -213,13 +215,13 @@ const Index = () => {
               <div className="space-y-2">
                 <label className="block text-sm font-medium">Data Type</label>
                 <Select value={dataType} onValueChange={(value: 'text' | 'image' | 'document') => setDataType(value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-[#1A1F2C] text-white border-white/10">
                     <SelectValue placeholder="Select data type" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="text">Text Message</SelectItem>
-                    <SelectItem value="image">Image File</SelectItem>
-                    <SelectItem value="document">Document (PDF/TXT)</SelectItem>
+                  <SelectContent className="bg-[#1A1F2C] text-white border-white/10">
+                    <SelectItem value="text" className="focus:bg-white/10 focus:text-white">Text Message</SelectItem>
+                    <SelectItem value="image" className="focus:bg-white/10 focus:text-white">Image File</SelectItem>
+                    <SelectItem value="document" className="focus:bg-white/10 focus:text-white">Document (PDF/TXT)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
