@@ -19,6 +19,7 @@ const Index = () => {
   const [mode, setMode] = useState<'hide' | 'extract'>('hide');
   const [dataType, setDataType] = useState<'text' | 'image' | 'document'>('text');
   const [secretFile, setSecretFile] = useState<File | null>(null);
+  const [extractedMessage, setExtractedMessage] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
 
@@ -60,6 +61,7 @@ const Index = () => {
     setSecretKey('');
     setSecretMessage('');
     setSecretFile(null);
+    setExtractedMessage('');
   };
 
   const processImage = async () => {
@@ -102,6 +104,8 @@ const Index = () => {
         const modifiedImageData = hideData(imageData, encrypted);
         ctx.putImageData(modifiedImageData, 0, 0);
 
+        setExtractedMessage(`Encrypted message: ${encrypted}`);
+
         const link = document.createElement('a');
         link.download = 'stego-image.png';
         link.href = canvas.toDataURL();
@@ -112,7 +116,6 @@ const Index = () => {
           description: "Your data has been hidden in the image.",
         });
 
-        resetForm();
       } else {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         let extractedData;
@@ -141,14 +144,14 @@ const Index = () => {
               description: "File extracted successfully!",
             });
           } else {
-            setSecretMessage(decrypted);
+            setExtractedMessage(decrypted);
             toast({
               title: "Success!",
               description: "Message extracted successfully!",
             });
           }
         } catch (error) {
-          setSecretMessage('');
+          setExtractedMessage('');
           toast({
             title: "Incorrect Password",
             description: "Please check your encryption key and try again.",
@@ -256,9 +259,9 @@ const Index = () => {
                 </label>
                 <Textarea
                   id="secretMessage"
-                  value={secretMessage}
+                  value={extractedMessage}
                   readOnly
-                  placeholder="Extracted message will appear here"
+                  placeholder={mode === 'hide' ? 'Encrypted message will appear here' : 'Extracted message will appear here'}
                   className="neo-glass min-h-[100px]"
                 />
               </div>
