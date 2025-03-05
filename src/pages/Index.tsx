@@ -55,6 +55,13 @@ const Index = () => {
     return true;
   };
 
+  const resetForm = () => {
+    setCoverImage(null);
+    setSecretKey('');
+    setSecretMessage('');
+    setSecretFile(null);
+  };
+
   const processImage = async () => {
     if (!coverImage || !secretKey) return;
 
@@ -104,6 +111,8 @@ const Index = () => {
           title: "Success!",
           description: "Your data has been hidden in the image.",
         });
+
+        resetForm();
       } else {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         let extractedData;
