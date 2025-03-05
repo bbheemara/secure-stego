@@ -187,14 +187,14 @@ const Index = () => {
           <Button
             variant={mode === 'hide' ? 'default' : 'outline'}
             onClick={() => setMode('hide')}
-            className="text-white"
+            className="bg-[#1A1F2C] text-white border-white/10 hover:bg-[#1A1F2C]/80"
           >
             Hide Data
           </Button>
           <Button
             variant={mode === 'extract' ? 'default' : 'outline'}
             onClick={() => setMode('extract')}
-            className="text-white"
+            className="bg-[#1A1F2C] text-white border-white/10 hover:bg-[#1A1F2C]/80"
           >
             Extract Data
           </Button>
