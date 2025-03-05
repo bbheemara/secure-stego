@@ -261,7 +261,7 @@ const Index = () => {
                   id="secretMessage"
                   value={extractedMessage}
                   readOnly
-                  placeholder={mode === 'hide' ? 'Encrypted message will appear here' : 'Extracted message will appear here'}
+                  placeholder={mode === 'extract' ? 'Extracted message will appear here' : 'Encrypted message will appear here'}
                   className="neo-glass min-h-[100px]"
                 />
               </div>
